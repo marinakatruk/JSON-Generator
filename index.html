@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>JSON Generator</title>
+        <link rel="stylesheet" href="style.css">
+        <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,500;0,700;1,200&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <header class="header">
+            <div class="container header__align">
+                <h1 class="header__title"><span class="title__logo">JSON</span> Generator</h1>
+                <ul></ul>
+            </div>
+        </header>
+
+        <div class="main">
+            <div class="main__content">
+                <div class="main__content__result">
+                    <h2 class="main__content__title">Generated JSON Data</h2>
+                    <div class="result__textarea" id="textarea">
+                        <div class="result__button add" id="add">+</div>
+                        <div class="result__button delete" id="delete">-</div>
+                    </div>
+                </div>
+                <div class="main__content__generator">
+                    <p class="generator__text">
+                        Push ⊕ to add the Data <br>
+                        Push ⊖ to delete the Data
+                    </p>
+                    <form class="generator__form hidden" name="form">
+                        <h2 class="main__content__title">Enter your Data</h2>
+                        <div class="form__block">
+                            <label class="form__label" for="key">Key:</label>
+                            <input class="form__input" name="key" id="key" type="text">
+                        </div>
+                        <p class="input__help help__key" id="help-key">Please enter a string</p>
+                        <div class="form__block">
+                            <label class="form__label" for="value">Value:</label>
+                            <input class="form__input" name="value" id="value" type="text">
+                        </div>
+                        <p class="input__help help__value" id="help-value">Please enter a string or a number or an object (use "=" to split key and value, e.g. "key=value")</p>
+                        <input class="form__button" type="submit" name="button" value="Generate">
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p class="footer__text">© 2020 Marina Katruk</p>
+        </footer>
+
+        <script src="script.js"></script>
+
+    </body>
+</html>
