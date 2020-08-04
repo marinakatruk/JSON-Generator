@@ -1,14 +1,16 @@
-const textarea = document.getElementById('textarea');
+const result = document.getElementById('result');
 const addButton = document.getElementById('add');
 const deleteButton = document.getElementById('delete');
+const resultObject = document.getElementById('object');
 const form = document.forms.form;
+const img = document.getElementById('img');
 
 addButton.onclick = () => {
     if (form.classList.contains('hidden')) {
+        img.classList.add('hidden');
         form.classList.remove('hidden');
-        textarea.append('{ }');
-    } 
-    
+        resultObject.append('{ }');
+    }
 };
 
 const showHelp = (note) => {
@@ -78,25 +80,25 @@ const checkFieldsValuesMatch = () => {
     }
 };
 
+const newObject = {};
 
 form.addEventListener('submit', function (event) {
     event.preventDefault();
-
+    
+    // валидация полей
     removeValidation();
 
     checkFieldsPresense();
 
     checkFieldsValuesMatch();
 
-    const text = `"${form.key.value}" : "${form.value.value}",`;
+    // запись значений полей в объект...
 
+    newObject[form.key.value] = form.value.value;
 
-    let elemObject = document.createElement('div');
-    elemObject.className = 'object';
-    elemObject.innerHTML = text;
-    console.log(elemObject);
-    textarea.append(elemObject);
-
+    console.log(newObject);
+    
+   
 });
 
 
