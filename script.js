@@ -78,16 +78,16 @@ const checkFieldsPresense = () => {
     return valid;
 };
 
-//валидация - правильные символы
+//валидация - символы
 const checkFieldsValuesMatch = () => {
     let valid = true;
-    const letters = /^[a-zA-Z]+$/;
-    const lettersAndNumbers = /^[0-9a-zA-Z]+|[a-zA-Z]+[=][0-9a-zA-Z]+$/;
-    if (!form.key.value.match(letters) && form.key.value) {
-        let error = generateError('Must contain only letters');
+    const lettersAndNumbers = /^[0-9a-zA-Z]+$/;
+    const letAndNumAndProp = /^[0-9a-zA-Z]+|[0-9a-zA-Z]+[=][0-9a-zA-Z]+$/;
+    if (!form.key.value.match(lettersAndNumbers) && form.key.value) {
+        let error = generateError('Must contain only letters or numbers');
         blocks[0].append(error);
         valid = false;
-    } else if (!form.value.value.match(lettersAndNumbers) && form.value.value) {
+    } else if (!form.value.value.match(letAndNumAndProp) && form.value.value) {
         let error = generateError('Must contain only letters or numbers or a property');
         blocks[1].append(error);
         valid = false;
@@ -97,13 +97,40 @@ const checkFieldsValuesMatch = () => {
 
 //добавить свойство в итоговое поле
 const addPropertyString = () => {
-    let newProp = document.createElement('div');
+    const newProp = document.createElement('div');
     newProp.className = 'property';
+    newProp.setAttribute('data-key', form.key.value);
     newProp.innerHTML = `<span>"${form.key.value}"</span> : <span>"${form.value.value}"</span>,`;
     plusButton.before(newProp);
+    const minusButton = document.createElement('div');
+    minusButton.className = 'result__button minus';
+    minusButton.innerHTML = '-';
+    newProp.append(minusButton);
 };
 
 const newObject = {};
+
+//валидация - проверка ключа
+const checkKeyNotDoubled = (key) => {
+    let valid = true;
+    const objectKeys = Object.keys(newObject);
+    if (objectKeys.includes(key)) {
+        let error = generateError('This key already exists');
+        blocks[0].append(error);
+        valid = false;
+    }
+    return valid;
+};
+
+//добавить свойство в объект
+const AddPropertyToObject = () => {
+    const newKey = form.key.value;
+    const newValue = form.value.value;
+    if (typeof newKey === 'number') {
+        newObject[String(newKey)] = newValue;
+    }
+    newObject[newKey] = newValue;
+};
 
 //обработчик на отправку формы
 form.addEventListener('submit', function (event) {
@@ -111,9 +138,9 @@ form.addEventListener('submit', function (event) {
     
     removeValidation();
 
-    if (checkFieldsPresense() && checkFieldsValuesMatch()) {
+    if (checkFieldsPresense() && checkFieldsValuesMatch() && checkKeyNotDoubled(form.key.value)) {
 
-        newObject[form.key.value] = form.value.value;
+        AddPropertyToObject();
 
         addPropertyString();
 
@@ -123,28 +150,36 @@ form.addEventListener('submit', function (event) {
 
         if (downloadButton.classList.contains('hidden')) {
             downloadButton.classList.remove('hidden');
-        }
-        
+        } 
     }
+    console.log(newObject);
 });
 
-//удалить последнее свойство из окна, из объекта
-minusButton.onclick = () => {
-    const properties = document.querySelectorAll('.property');
-    let lastProp = properties[properties.length - 1];
-    lastProp.remove();
-
-    const objectKeys = Object.keys(newObject);
-    const lastKey = objectKeys[objectKeys.length - 1];
-    delete newObject[lastKey];
-
-    if (properties.length === 1) {
+//убрать кнопку download
+const hideDownloadButton = () => {
+    const properties = Object.keys(newObject);
+    if (properties.length === 0) {
         if (!downloadButton.classList.contains('hidden')) {
             downloadButton.classList.add('hidden');
         }
     }
+};
+
+//удалить последнее свойство из окна, из объекта
+result.onclick = (event) => {
+    let minus = event.target.closest('div.minus');
+    if (!minus) return;
+
+    minus.parentNode.remove();
+
+    const keyToDelete = minus.parentNode.dataset.key;
+    delete newObject[keyToDelete];
+
+    hideDownloadButton();
     console.log(newObject);
 };
+
+
 
 //скачать итоговый объект в виде файла
 downloadButton.onclick = (event) => {
