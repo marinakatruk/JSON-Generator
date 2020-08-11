@@ -44,10 +44,20 @@
                         </div>
                         <p class="input__help help__key" id="help-key">Please enter a string</p>
                         <div class="form__block">
-                            <label class="form__label" for="value">Value:</label>
+                            <label class="form__label" for="value">Value (or <button type="button" class="value__button" id="value-button">add an object</button>) :</label>
                             <input class="form__input" name="value" id="value" type="text">
                         </div>
                         <p class="input__help help__value" id="help-value">Please enter a string or a number or a property (use "=" to split key and value, e.g. "key=value")</p>
+                        <div class="form__inner__object hidden" id="inner-object">
+                            <div class="inner__block">
+                                <label class="inner__label" for="inner-key">Key:</label>
+                                <input class="inner__input" name="inner-key" id="inner-key" type="text">
+                            </div>
+                            <div class="inner__block">
+                                <label class="inner__label" for="inner-value">Value:</label>
+                                <input class="inner__input" name="inner-value" id="inner-value" type="text">
+                            </div>
+                        </div>
                         <input class="form__button" type="submit" name="addbutton" value="Add">
                     </form>
                     <a class="generator__download hidden" id="download">Download JSON file</a>
