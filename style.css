@@ -276,6 +276,10 @@ body {
     display: none;
 }
 
+.inner__prop {
+    margin-left: 20px;
+}
+
 
 
 
