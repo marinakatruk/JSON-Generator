@@ -9,8 +9,8 @@ const valueButton = document.getElementById('value-button');
 const innerObject = document.getElementById('inner-object');
 
 const addButton = form.elements.addbutton;
-const fields = form.querySelectorAll('.form__input');
-const blocks = form.querySelectorAll('.form__block');
+const fields = form.querySelectorAll('.generator__input');
+const blocks = form.querySelectorAll('.generator__block');
 const innerFields = form.querySelectorAll('.inner__input');
 const innerBlocks = form.querySelectorAll('.inner__block');
 
@@ -26,7 +26,6 @@ const hiddenClassToggle = (RemoveClass, AddClass) => {
 //очистить все поля
 const clearAllFields = () => {
     fields.forEach(field => field.value = '');
-    innerFields.forEach(field => field.value = '');
 };
 
 const formBlockToHide = blocks[1];
@@ -34,7 +33,6 @@ const formBlockToHide = blocks[1];
 plusButton.onclick = () => {
     hiddenClassToggle(form, img);
     hiddenClassToggle(formBlockToHide, innerObject);
-    makeKeyFieldActive();
     clearAllFields();
 }
 
@@ -59,64 +57,59 @@ const removeValidation = () => {
     }
 };
 
-
 //валидация - все поля заполнены, максимальное кол-во символов
 const checkFieldsValidation = () => {
 
     let valid = true;
-    const lettersAndNumbers = /^[0-9a-zA-Z]+$/;
-    if (innerObject.classList.contains('hidden')) {
-        for (let i = 0; i < fields.length; i += 1) {
-            let length = fields[i].value.length;
-            if (!fields[i].value) {
-                let error = generateError('Cannot be blank');
-                blocks[i].append(error);
-                valid = false;
-            } else if (length > 12) {
+
+    for (let i = 0; i < fields.length; i += 1) {
+        if (!fields[i].value && fields[i].offsetWidth > 0) {
+            let error = generateError('Cannot be blank');
+            blocks[i].append(error);
+            valid = false;
+        }
+    }
+
+    for (let i = 0; i < fields.length; i += 1) {
+        let length = fields[i].value.length;
+        if (fields[i].hasAttribute('key') && length > 12) {
+            if (!blocks[i].querySelector('.error')) {
                 let error = generateError('Cannot be more than 12 symbols');
-                blocks[i].append(error);
-                valid = false;
-            } else if (!fields[i].value.match(lettersAndNumbers)) {
-                let error = generateError('Must contain only letters or numbers');
                 blocks[i].append(error);
                 valid = false;
             }
-        }
 
-    } else {
-        let length = fields[0].value.length;
-        if (!fields[0].value) {
-            let error = generateError('Cannot be blank');
-            blocks[0].append(error);
-            valid = false;
-        } else if (length > 12) {
-            let error = generateError('Cannot be more than 12 symbols');
-            blocks[0].append(error);
-            valid = false;
-        } else if (!fields[0].value.match(lettersAndNumbers)) {
-            let error = generateError('Must contain only letters or numbers');
-            blocks[0].append(error);
-            valid = false;
-        }
-        for (let i = 0; i < innerFields.length; i += 1) {
-            let innerLength = innerFields[i].value.length;
-            if (!innerFields[i].value) {
-                let error = generateError('Cannot be blank');
-                innerBlocks[i].append(error);
-                valid = false;
-            } else if (innerLength > 12) {
-                let error = generateError('Cannot be more than 12 symbols');
-                innerBlocks[i].append(error);
-                valid = false;
-            } else if (!innerFields[i].value.match(lettersAndNumbers)) {
-                let error = generateError('Must contain only letters or numbers');
-                innerBlocks[i].append(error);
+        } else if (fields[i].hasAttribute('value') && length > 150) {
+            if (!blocks[i].querySelector('.error')) {
+                let error = generateError('Cannot be more than 150 symbols');
+                blocks[i].append(error);
                 valid = false;
             }
         }
     }
+
+    const lettersAndNumbers = /^[0-9a-zA-Z]+$/;
+    for (let i = 0; i < fields.length; i += 1) {
+        if (fields[i].hasAttribute('key') && !fields[i].value.match(lettersAndNumbers) && fields[i].offsetWidth > 0) {
+            if (!blocks[i].querySelector('.error')) {
+                let error = generateError('Must contain only letters or numbers');
+                blocks[i].append(error);
+                valid = false;
+            }
+        }
+    }
+    console.log(valid);
     return valid;
 };
+
+// const ifErrorShouldBeAdded = (n, errorText) => {
+//     if (!blocks[n].querySelector('.error')) {
+//         let error = generateError(errorText);
+//         blocks[n].append(error);
+//         return false;
+//     }
+//     return true;
+// };
 
 const innerKey = document.getElementById('inner-key');
 const innerValue = document.getElementById('inner-value');
@@ -142,108 +135,184 @@ const createMinusButton = () => {
     return button;
 };
 
+const createInnerPlusButton = (parentElem) => {
+    const plusElem = document.createElement('div');
+    plusElem.className = 'result__button plus';
+    addMarginLeft(plusElem, parentElem);
+    plusElem.innerHTML = '+';
+    return plusElem;
+};
+
+const createClosingBrace = (parentElem) => {
+    const brace = document.createElement('div');
+    brace.innerHTML = '}';
+    addMarginLeft(brace, parentElem);
+    return brace;
+};
+
+const createFirstLevelKey = () => {
+    const keyElem = document.createElement('div');
+    keyElem.className = 'property firstlevel';
+    keyElem.setAttribute('data-key', form.key.value);
+    keyElem.innerHTML = `"<span>${form.key.value}" : {</span>`;
+    return keyElem;
+};
+
+const addMarginLeft = (elemToAdd, elemToTake) => {
+    let marginValue = elemToTake.firstElementChild.offsetWidth + 'px';
+    elemToAdd.style.marginLeft = marginValue;
+};
+
+const findPlusChild = (parentElem) => {
+    let plusChild;
+    const chosenChildElems = parentElem.children;
+    for (let elem of chosenChildElems) {
+        if (elem.classList.contains('plus')) {
+            plusChild = elem;
+        }
+    }
+    return plusChild;
+};
+
 //добавить свойство в итоговое поле
 const addPropertyString = () => {
 
-    const addMarginLeft = (elemToAdd, elemToTake) => {
-        let marginValue = elemToTake.firstElementChild.offsetWidth + 'px';
-        elemToAdd.style.marginLeft = marginValue;
-    }
+    const newProp = generateProperty(form.key, form.value);
+    const propParent = result.querySelector('.chosen');
 
-    if (form.key.hasAttribute('disabled')) {
-        const innerProp = generateProperty(innerKey, innerValue);
-        const firstLevelKeyElems = result.querySelectorAll('.firstlevel');
-        for (let elem of firstLevelKeyElems) {
-            if (elem.dataset.key === form.key.value) {
-                const plusOfElem = elem.querySelector('.plus');
-                plusOfElem.before(innerProp);
-                addMarginLeft(innerProp, elem);
-                const innerMinusButton = createMinusButton();
-                innerProp.append(innerMinusButton);
-            }
+    if (!propParent) {
+        if (!innerObject.classList.contains('hidden')) {
+            const newKey = createFirstLevelKey();
+            plusButton.before(newKey); 
+
+            const minusButton = createMinusButton();
+            newKey.append(minusButton);
+
+            const innerProp = generateProperty(innerKey, innerValue);
+            newKey.append(innerProp);
+            addMarginLeft(innerProp, newKey);
+            
+            const innerMinusButton = createMinusButton();
+            innerProp.append(innerMinusButton);
+
+            const innerPlusButton = createInnerPlusButton(newKey);
+            newKey.append(innerPlusButton);
+
+            const closingBrace = createClosingBrace(newKey);
+            newKey.append(closingBrace);
+        } else {
+            plusButton.before(newProp);
+            const minusButton = createMinusButton();
+            newProp.append(minusButton);
         }
-    
-    } else if (!innerObject.classList.contains('hidden')) {
-        const newKey = document.createElement('div');
-        newKey.className = 'property firstlevel';
-        newKey.setAttribute('data-key', form.key.value);
-        newKey.innerHTML = `"<span>${form.key.value}" : {</span>`;
-        plusButton.before(newKey);
-        
-        const minusButton = createMinusButton();
-        newKey.append(minusButton);
-        
-        const innerProp = generateProperty(innerKey, innerValue);
-        newKey.append(innerProp);
-          
-        addMarginLeft(innerProp, newKey);
-        
-        const innerMinusButton = createMinusButton();
-        innerProp.append(innerMinusButton);
-
-        const innerPlusButton = document.createElement('div');
-        innerPlusButton.className = 'result__button plus';
-        addMarginLeft(innerPlusButton, newKey);
-        innerPlusButton.innerHTML = '+';
-        newKey.append(innerPlusButton);
-        
-        const closingBrace = document.createElement('div');
-        closingBrace.innerHTML = '}';
-        newKey.append(closingBrace);
-        addMarginLeft(closingBrace, newKey);
-        
     } else {
+        
+        const plusOfParent = findPlusChild(propParent);
 
-        const newProp = generateProperty(form.key, form.value);
-        plusButton.before(newProp);
-        const minusButton = createMinusButton();
-        newProp.append(minusButton);
+        if (!innerObject.classList.contains('hidden')) {
+            const newKey = createFirstLevelKey();
+            plusOfParent.before(newKey);
+            addMarginLeft(newKey, propParent);
+
+            const minusButton = createMinusButton();
+            newKey.append(minusButton);
+
+            const innerProp = generateProperty(innerKey, innerValue);
+            newKey.append(innerProp);
+            addMarginLeft(innerProp, newKey);
+
+            const innerMinusButton = createMinusButton();
+            innerProp.append(innerMinusButton);
+
+            const innerPlusButton = createInnerPlusButton(newKey);
+            newKey.append(innerPlusButton);
+
+            const closingBrace = createClosingBrace(newKey);
+            newKey.append(closingBrace);
+        } else {
+            plusOfParent.before(newProp);
+            addMarginLeft(newProp, propParent);
+            const innerMinusButton = createMinusButton();
+            newProp.append(innerMinusButton);
+        }
     }
 };
 
 const newObject = {};
 
+
 //валидация - проверка ключа
 const checkKeyNotDoubled = () => {
     let valid = true;
-    if (form.key.hasAttribute('disabled')) {
-        const objectForCheck = newObject[form.key.value];
-        const innerObjectKeys = Object.keys(objectForCheck);
-        if (innerObjectKeys.includes(innerKey.value)) {
-            let error = generateError('This key already exists');
-            innerBlocks[0].append(error);
-            valid = false; 
-        }
-    } else {
-        const objectKeys = Object.keys(newObject);
-        if (objectKeys.includes(form.key.value) && !form.key.hasAttribute('disabled')) {
-            let error = generateError('This key already exists');
-            blocks[0].append(error);
-            valid = false;
-        }
+    const firstKey = form.key.value;
+    const secondKey = innerKey.value;
+    if (newObject.hasOwnProperty(firstKey)) {
+        let error = generateError('This key already exists');
+        form.key.parentNode.append(error);
+        valid = false;
     }
+
+    if (newObject.hasOwnProperty(firstKey.secondKey) && innerKey.offsetWidth > 0) {
+        let error = generateError('This key already exists');
+        innerKey.parentNode.append(error);
+        valid = false;
+    }
+
+    // if (form.key.hasAttribute('disabled')) {
+    //     const objectForCheck = newObject[form.key.value];
+    //     const innerObjectKeys = Object.keys(objectForCheck);
+    //     if (innerObjectKeys.includes(innerKey.value)) {
+    //         let error = generateError('This key already exists');
+    //         innerBlocks[0].append(error);
+    //         valid = false; 
+    //     }
+    // } else {
+    //     const objectKeys = Object.keys(newObject);
+    //     if (objectKeys.includes(form.key.value) && !form.key.hasAttribute('disabled')) {
+    //         let error = generateError('This key already exists');
+    //         blocks[0].append(error);
+    //         valid = false;
+    //     }
+    // }
     return valid;
 };
 
 
 //добавить свойство в объект
 const AddPropertyToObject = () => {
+    const propParent = result.querySelector('.chosen');
+    
     const newKey = form.key.value;
     const newValue = form.value.value;
-    
-    if (form.key.hasAttribute('disabled')) {
-        ifValueIsNum(newObject[newKey], innerKey.value, innerValue.value);
 
-    } else if (!innerObject.classList.contains('hidden')) {
-        const propObject = {};
-        ifValueIsNum(propObject, innerKey.value, innerValue.value);
-        newObject[String(newKey)] = propObject;
+    if (!propParent) {
+    
+        if (!innerObject.classList.contains('hidden')) {
+            const propObject = {};
+            ifValueIsNum(propObject, innerKey.value, innerValue.value);
+            newObject[String(newKey)] = propObject;
+
+        } else {
+            ifValueIsNum(newObject, newKey, newValue);
+        }
 
     } else {
-        ifValueIsNum(newObject, newKey, newValue);
+
+        if (!innerObject.classList.contains('hidden')) {
+            const propObject = {};
+            ifValueIsNum(propObject, innerKey.value, innerValue.value);
+            const propString = getParentsDataset(propParent);
+            console.log(propString);
+            // newObject[propString][String(newKey)] = propObject;
+
+        } else {
+        
+            const propString = getParentsDataset(propParent);
+            // newObject[propString][String(newKey)] = newValue;
+            
+        }
     }
 
-    console.log(newObject);
 };
 
 const ifValueIsNum = (object, key, value) => {
@@ -252,6 +321,14 @@ const ifValueIsNum = (object, key, value) => {
     } else {
     object[String(key)] = Number(value);
     }  
+};
+
+const getParentsDataset = (elem) => {
+    let result = [];
+    for (let i = elem; i.classList.contains('property'); i = i.parentNode) {
+        result.push(i.dataset.key);
+    }
+    return result.join('.');
 };
 
 
@@ -275,9 +352,11 @@ form.addEventListener('submit', function (event) {
         if (downloadButton.classList.contains('hidden')) {
             downloadButton.classList.remove('hidden');
         }
-    }
 
-    
+        removeChosen();
+    }
+    console.log(newObject);
+
 });
 
 //убрать кнопку download
@@ -290,12 +369,6 @@ const hideDownloadButton = () => {
     }
 };
 
-//активировать поле ключ
-const makeKeyFieldActive = () => {
-    if (form.key.hasAttribute('disabled')) {
-        form.key.removeAttribute('disabled');
-    }
-};
 
 //удалить последнее свойство из окна, из объекта
 result.addEventListener('click', (event) => {
@@ -316,8 +389,6 @@ result.addEventListener('click', (event) => {
 
     clearAllFields();
 
-    makeKeyFieldActive();
-
     hiddenClassToggle(img, form);
     hiddenClassToggle(formBlockToHide, innerObject);
 
@@ -331,12 +402,8 @@ result.addEventListener('click', (event) => {
     if (!innerPlus.classList.contains('plus')) return;
 
     hiddenClassToggle(form, img);
-    hiddenClassToggle(innerObject, formBlockToHide);
-
-    let currentKey = innerPlus.parentNode.dataset.key;
-    form.key.value = currentKey;
-    form.key.setAttribute('disabled', 'disabled');
-
+    
+    innerPlus.parentNode.classList.add('chosen');
 });
 
 const cancelButton = form.elements.cancel;
@@ -344,10 +411,17 @@ const cancelButton = form.elements.cancel;
 //кнопка отмена
 cancelButton.onclick = () => {
     clearAllFields();
-    makeKeyFieldActive();
     removeValidation();
     hiddenClassToggle(formBlockToHide,innerObject);
     hiddenClassToggle(img, form);
+    removeChosen();
+};
+
+const removeChosen = () => {
+    const chosen = result.querySelector('.chosen');
+    if (chosen) {
+        chosen.classList.remove('chosen');
+    }
 };
 
 
