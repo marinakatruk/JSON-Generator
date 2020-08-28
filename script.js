@@ -389,17 +389,20 @@ result.addEventListener('click', (event) => {
     let minus = event.target;
     if (!minus.classList.contains('minus')) return;
 
-    const minusParentOfParent = minus.parentNode.parentNode;
-    if (!minusParentOfParent.hasAttribute('data-key')) {
-        const keyToDelete = minus.parentNode.dataset.key;
-        delete newObject[keyToDelete];
+    if (!minus.parentNode.parentNode.classList.contains('property')) {
+        minus.parentNode.remove();
+        delete newObject[minus.parentNode.dataset.key];
     } else {
-        const outerKeyToDelete = minusParentOfParent.dataset.key;
-        const innerKeyToDelete = minus.parentNode.dataset.key;
-        delete newObject[outerKeyToDelete][innerKeyToDelete];
-    }
+        minus.parentNode.parentNode.classList.add('cut');
+        const cutElem = result.querySelector('.cut');
 
-    minus.parentNode.remove();
+        minus.parentNode.remove();
+
+        const lastParent = getLastParent(cutElem);
+        newObject[String(lastParent.dataset.key)] = makeInnerObject(lastParent); 
+
+        cutElem.classList.remove('cut');
+    }
 
     clearAllFields();
 

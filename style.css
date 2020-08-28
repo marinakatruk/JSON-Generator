@@ -311,6 +311,10 @@ body {
     margin-left: 20px;
 }
 
+.property {
+    white-space: nowrap;
+}
+
 
 
 
