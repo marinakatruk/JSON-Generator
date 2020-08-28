@@ -98,7 +98,6 @@ const checkFieldsValidation = () => {
             }
         }
     }
-    console.log(valid);
     return valid;
 };
 
@@ -120,9 +119,9 @@ const generateProperty = (key, value) => {
     elem.className = 'property';
     elem.setAttribute('data-key', key.value);
     if (isNaN(Number(value.value))) {
-        elem.innerHTML = `<span>"${key.value}"</span> : <span>"${value.value}"</span>,`;
+        elem.innerHTML = `"<span>${key.value}</span>" : "<span>${value.value}</span>",`;
     } else {
-        elem.innerHTML = `<span>"${key.value}"</span> :  <span>${value.value}</span>,`;
+        elem.innerHTML = `"<span>${key.value}</span>" :  <span>${value.value}</span>,`;
     }
     return elem;
 };
@@ -154,12 +153,12 @@ const createFirstLevelKey = () => {
     const keyElem = document.createElement('div');
     keyElem.className = 'property firstlevel';
     keyElem.setAttribute('data-key', form.key.value);
-    keyElem.innerHTML = `"<span>${form.key.value}" : {</span>`;
+    keyElem.innerHTML = `"<span>${form.key.value}</span>" : {`;
     return keyElem;
 };
 
 const addMarginLeft = (elemToAdd, elemToTake) => {
-    let marginValue = elemToTake.firstElementChild.offsetWidth + 'px';
+    let marginValue = elemToTake.firstElementChild.offsetWidth + 20 + 'px';
     elemToAdd.style.marginLeft = marginValue;
 };
 
@@ -297,23 +296,38 @@ const AddPropertyToObject = () => {
         }
 
     } else {
-
-        if (!innerObject.classList.contains('hidden')) {
-            const propObject = {};
-            ifValueIsNum(propObject, innerKey.value, innerValue.value);
-            const propString = getParentsDataset(propParent);
-            console.log(propString);
-            // newObject[propString][String(newKey)] = propObject;
-
-        } else {
-        
-            const propString = getParentsDataset(propParent);
-            // newObject[propString][String(newKey)] = newValue;
-            
-        }
+        const lastParent = getLastParent(propParent);
+        newObject[String(lastParent.dataset.key)] = makeInnerObject(lastParent); 
     }
 
 };
+
+const makeInnerObject = (elem) => {
+    const obj = {};
+    const elemChildren = elem.children;
+    const propChildren = choosePropChildren(elemChildren);
+    for (let child of propChildren) {
+        const firstSpan = child.firstElementChild;
+        const nextSpan = firstSpan.nextElementSibling;
+        if(!child.classList.contains('firstlevel')) {
+            ifValueIsNum(obj, firstSpan.textContent, nextSpan.textContent);
+        } else {
+            obj[String(firstSpan.textContent)] = makeInnerObject(child);
+        }
+    }
+    return obj;
+}
+
+const choosePropChildren = (array) => {
+    let result = [];
+    for (let i = 0; i < array.length; i += 1) {
+        if (array[i].classList.contains('property')) {
+            result.push(array[i]);
+        }
+    }
+    return result;
+};
+
 
 const ifValueIsNum = (object, key, value) => {
     if (isNaN(Number(value))) {
@@ -323,12 +337,12 @@ const ifValueIsNum = (object, key, value) => {
     }  
 };
 
-const getParentsDataset = (elem) => {
+const getLastParent = (elem) => {
     let result = [];
     for (let i = elem; i.classList.contains('property'); i = i.parentNode) {
-        result.push(i.dataset.key);
+        result.push(i);
     }
-    return result.join('.');
+    return result[result.length - 1];
 };
 
 
@@ -339,10 +353,10 @@ form.addEventListener('submit', function (event) {
     removeValidation();
 
     if (checkFieldsValidation() && checkKeyNotDoubled()) {
-       
-        AddPropertyToObject();
 
         addPropertyString();
+       
+        AddPropertyToObject();
 
         clearAllFields();
 
