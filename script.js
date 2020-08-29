@@ -30,12 +30,16 @@ const clearAllFields = () => {
 
 const formBlockToHide = blocks[1];
 
+//нажать внешний плюс
 plusButton.onclick = () => {
+    removeChosen();
     hiddenClassToggle(form, img);
     hiddenClassToggle(formBlockToHide, innerObject);
     clearAllFields();
+    removeValidation();
 }
 
+//показать форму для вложенного объекта
 valueButton.onclick = () => {
     hiddenClassToggle(innerObject, formBlockToHide);
 };
@@ -89,10 +93,17 @@ const checkFieldsValidation = () => {
     }
 
     const lettersAndNumbers = /^[0-9a-zA-Z]+$/;
+    const allSymbExceptRus = /^[^А-Яа-яЁё]+$/;
     for (let i = 0; i < fields.length; i += 1) {
         if (fields[i].hasAttribute('key') && !fields[i].value.match(lettersAndNumbers) && fields[i].offsetWidth > 0) {
             if (!blocks[i].querySelector('.error')) {
                 let error = generateError('Must contain only letters or numbers');
+                blocks[i].append(error);
+                valid = false;
+            }
+        } else if (fields[i].hasAttribute('value') && !fields[i].value.match(allSymbExceptRus) && fields[i].offsetWidth > 0) {
+            if (!blocks[i].querySelector('.error')) {
+                let error = generateError('Must contain only letters or numbers or symbols');
                 blocks[i].append(error);
                 valid = false;
             }
@@ -101,14 +112,6 @@ const checkFieldsValidation = () => {
     return valid;
 };
 
-// const ifErrorShouldBeAdded = (n, errorText) => {
-//     if (!blocks[n].querySelector('.error')) {
-//         let error = generateError(errorText);
-//         blocks[n].append(error);
-//         return false;
-//     }
-//     return true;
-// };
 
 const innerKey = document.getElementById('inner-key');
 const innerValue = document.getElementById('inner-value');
@@ -134,6 +137,7 @@ const createMinusButton = () => {
     return button;
 };
 
+//создать внутренний плюс
 const createInnerPlusButton = (parentElem) => {
     const plusElem = document.createElement('div');
     plusElem.className = 'result__button plus';
@@ -142,6 +146,7 @@ const createInnerPlusButton = (parentElem) => {
     return plusElem;
 };
 
+//создать закрывающую скобку
 const createClosingBrace = (parentElem) => {
     const brace = document.createElement('div');
     brace.innerHTML = '}';
@@ -149,6 +154,7 @@ const createClosingBrace = (parentElem) => {
     return brace;
 };
 
+//создать элемент-внешнее свойство
 const createFirstLevelKey = () => {
     const keyElem = document.createElement('div');
     keyElem.className = 'property firstlevel';
@@ -157,10 +163,12 @@ const createFirstLevelKey = () => {
     return keyElem;
 };
 
+//добавить отсуп слева элементу
 const addMarginLeft = (elemToAdd, elemToTake) => {
     let marginValue = elemToTake.firstElementChild.offsetWidth + 20 + 'px';
     elemToAdd.style.marginLeft = marginValue;
 };
+
 
 const findPlusChild = (parentElem) => {
     let plusChild;
@@ -243,38 +251,34 @@ const newObject = {};
 //валидация - проверка ключа
 const checkKeyNotDoubled = () => {
     let valid = true;
-    const firstKey = form.key.value;
-    const secondKey = innerKey.value;
-    if (newObject.hasOwnProperty(firstKey)) {
-        let error = generateError('This key already exists');
-        form.key.parentNode.append(error);
-        valid = false;
-    }
+    const keyForCheck = form.key.value;
+    const propParent = result.querySelector('.chosen');
 
-    if (newObject.hasOwnProperty(firstKey.secondKey) && innerKey.offsetWidth > 0) {
-        let error = generateError('This key already exists');
-        innerKey.parentNode.append(error);
-        valid = false;
+    if (!propParent) {
+        if (newObject.hasOwnProperty(keyForCheck)) {
+            let error = generateError('This key already exists');
+            form.key.parentNode.append(error);
+            valid = false;
+        }
+    } else {
+        const propChildren = propParent.querySelectorAll('.property');
+        const currentKeys = getDatasetKeys(propChildren);
+        if (currentKeys.includes(keyForCheck)) {
+            let error = generateError('This key already exists');
+            form.key.parentNode.append(error);
+            valid = false;
+        }
     }
-
-    // if (form.key.hasAttribute('disabled')) {
-    //     const objectForCheck = newObject[form.key.value];
-    //     const innerObjectKeys = Object.keys(objectForCheck);
-    //     if (innerObjectKeys.includes(innerKey.value)) {
-    //         let error = generateError('This key already exists');
-    //         innerBlocks[0].append(error);
-    //         valid = false; 
-    //     }
-    // } else {
-    //     const objectKeys = Object.keys(newObject);
-    //     if (objectKeys.includes(form.key.value) && !form.key.hasAttribute('disabled')) {
-    //         let error = generateError('This key already exists');
-    //         blocks[0].append(error);
-    //         valid = false;
-    //     }
-    // }
     return valid;
 };
+
+const getDatasetKeys = (array) => {
+    const keys = [];
+    for (const elem of array) {
+        keys.push(elem.dataset.key);
+    }
+    return keys;
+}
 
 
 //добавить свойство в объект
@@ -302,6 +306,7 @@ const AddPropertyToObject = () => {
 
 };
 
+//создание внутренних объектов
 const makeInnerObject = (elem) => {
     const obj = {};
     const elemChildren = elem.children;
@@ -384,7 +389,7 @@ const hideDownloadButton = () => {
 };
 
 
-//удалить последнее свойство из окна, из объекта
+//удалить свойство из окна, из объекта
 result.addEventListener('click', (event) => {
     let minus = event.target;
     if (!minus.classList.contains('minus')) return;
@@ -405,6 +410,8 @@ result.addEventListener('click', (event) => {
     }
 
     clearAllFields();
+    removeChosen();
+    removeValidation();
 
     hiddenClassToggle(img, form);
     hiddenClassToggle(formBlockToHide, innerObject);
@@ -413,10 +420,13 @@ result.addEventListener('click', (event) => {
     console.log(newObject);
 });
 
-//открыть форму для добавления внутреннего свойства
+//открыть форму для добавления вложенного свойства (внутренний  плюс)
 result.addEventListener('click', (event) => {
     let innerPlus = event.target;
     if (!innerPlus.classList.contains('plus')) return;
+
+    removeChosen();
+    removeValidation();
 
     hiddenClassToggle(form, img);
     

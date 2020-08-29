@@ -1,7 +1,10 @@
 body {
     margin: 0;
     font-family: 'Kanit', sans-serif;
+    display: flex;
+    flex-direction: column;
     height: 100vh;
+    
 }
 
 .header {
@@ -9,6 +12,7 @@ body {
     width: 100%;
     height: 60px;
     border-bottom: 1px solid #D3D3D3;
+    flex-grow: 1;
 }
 
 .container {
@@ -43,6 +47,7 @@ body {
     text-align: center;
     display: flex;
     justify-content: center;
+    flex-grow: 10;
 }
 
 .main__content {
@@ -286,6 +291,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    flex-grow: 1;
 }
 
 .footer__text {
